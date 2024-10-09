@@ -1,31 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import BaseUserManager
-
-
-class WorkersManager(BaseUserManager):
-
-    def create_user(self, email, name, surname, password=None):
-        if not email:
-            raise ValueError('Worker must have an email address.')
-
-        email = self.normalize_email(email)
-        worker = self.model(email=email, name=name, surname=surname)
-
-        worker.set_password(password)
-        worker.save(using=self._db)
-
-        return worker
 
 
 class Workers(models.Model):
     email = models.EmailField(max_length=255, unique=True, primary_key=True)
     name = models.CharField(max_length=255)
     surname = models.CharField(max_length=255)
-
-    objects = WorkersManager()
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name', 'surname']
+    password = models.CharField(max_length=255)
 
 
 class Clients(models.Model):
