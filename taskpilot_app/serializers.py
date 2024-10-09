@@ -5,19 +5,13 @@ from taskpilot_app import models
 class WorkersSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Workers
-        fields = ('email', 'name', 'surname', 'password')
-        extra_kwargs = {
-            'password': {
-                'write_only': True,
-                'style': {'input_type': 'password'}
-            }
-        }
+        fields = ('email', 'name', 'surname')
 
 
 class ClientsSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Clients
-        fields = ('client_id', 'name', 'email')
+        fields = ('name', 'email')
 
 
 class ProjectsSerializer(serializers.ModelSerializer):

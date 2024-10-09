@@ -15,8 +15,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Clients',
             fields=[
-                ('client_id', models.AutoField(primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
+                ('name', models.CharField(max_length=255, primary_key=True, serialize=False)),
                 ('email', models.EmailField(max_length=255)),
             ],
         ),
