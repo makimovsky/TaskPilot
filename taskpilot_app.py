@@ -1,3 +1,4 @@
+from pages.project_management import *
 import streamlit as st
 import requests
 
@@ -12,6 +13,15 @@ st.markdown("""
     font-size:80px;
     font-weight: bold;
 }
+.author {
+    font-size:17px;
+    font-weight: bold;
+}
+.date {
+    font-size:12px;
+    font-style: italic;
+    color: gray;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -24,47 +34,45 @@ if resource == 'Projects':
     project_search_by = st.multiselect('Search By', ['name', 'description', 'owner', 'client'],
                                        ['name', 'description', 'owner', 'client'])
 
-    st.markdown('***')
-    add_project_button = st.button(':blue[Add project]')
+    add_project_button = st.button(':green[Add project]')
     if add_project_button:
         st.switch_page('pages/add_project.py')
 
     projects = requests.get('http://127.0.0.1:8000/app/projects/').json()
     for project in projects:
         if any(project_search in project[field] for field in project_search_by if field in project):
-            st.write(f'<p class="big-font">Project {project['project_id']} - {project['name']}</p>\n<ul><li>Owner: '
-                     f'{project['owner']}</li><li>Client: {project['client']}</li><li>Description: '
-                     f'{project['description']}</li><li>Start date: {project['start_date']}</li><li>End date: '
-                     f'{project['end_date']}</li></ul><br>', unsafe_allow_html=True)
+            st.markdown('***')
+            st.write(f'<p class="big-font">Project {project.get('project_id')} - {project.get('name')}</p>',
+                     unsafe_allow_html=True)
+            if st.button(label=':blue[Details]', key=project.get('project_id')):
+                show_project(project)
 
 if resource == 'Workers':
     worker_search = st.text_input('Search Worker')
     worker_search_by = st.multiselect('Search By', ['name', 'surname', 'email'], ['name', 'surname', 'email'])
 
-    st.markdown('***')
-
-    add_worker_button = st.button(':blue[Add worker]')
+    add_worker_button = st.button(':green[Add worker]')
     if add_worker_button:
         st.switch_page('pages/add_worker.py')
 
     workers = requests.get('http://127.0.0.1:8000/app/workers/').json()
     for worker in workers:
         if any(worker_search in worker[field] for field in worker_search_by if field in worker):
-            st.write(f'<p class="big-font">{worker['name']} {worker['surname']}</p>\n<ul><li>Email: '
-                     f'{worker['email']}</li></ul>', unsafe_allow_html=True)
+            st.markdown('***')
+            st.write(f'<p class="big-font">{worker.get('name')} {worker.get('surname')}</p>\n<ul><li>Email: '
+                     f'{worker.get('email')}</li></ul>', unsafe_allow_html=True)
 
 if resource == 'Clients':
     client_search = st.text_input('Search Client')
     client_search_by = st.multiselect('Search By', ['name', 'email'], ['name', 'email'])
 
-    st.markdown('***')
-
-    add_client_button = st.button(':blue[Add client]')
+    add_client_button = st.button(':green[Add client]')
     if add_client_button:
         st.switch_page('pages/add_client.py')
 
     clients = requests.get('http://127.0.0.1:8000/app/clients/').json()
     for client in clients:
         if any(client_search in client[field] for field in client_search_by if field in client):
-            st.write(f'<p class="big-font">{client['name']}</p>\n<ul><li>Email: {client['email']}</li></ul>',
+            st.markdown('***')
+            st.write(f'<p class="big-font">{client.get('name')}</p>\n<ul><li>Email: {client.get('email')}</li></ul>',
                      unsafe_allow_html=True)

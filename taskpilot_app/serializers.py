@@ -29,4 +29,4 @@ class TasksSerializer(serializers.ModelSerializer):
 class CommentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Comments
-        fields = ('comment_id', 'task_id', 'author', 'comment', 'add_date')
+        fields = ('comment_id', 'project_id', 'author', 'comment', 'add_date')

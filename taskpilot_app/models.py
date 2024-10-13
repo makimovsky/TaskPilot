@@ -40,7 +40,7 @@ class Tasks(models.Model):
 
 class Comments(models.Model):
     comment_id = models.AutoField(primary_key=True)
-    task_id = models.ForeignKey(Tasks, on_delete=models.CASCADE)
+    project_id = models.ForeignKey(Projects, on_delete=models.CASCADE)
     author = models.ForeignKey(Workers, on_delete=models.CASCADE)
     comment = models.CharField(max_length=1000)
     add_date = models.DateField(auto_now_add=True)
