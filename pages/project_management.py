@@ -92,7 +92,7 @@ def edit_task(task_to_edit):
     task_worker = st.selectbox('Worker', workers_emails)
     name = st.text_input('Name', task_to_edit.get('name'))
     description = st.text_input('Description', task_to_edit.get('description'))
-    status = st.selectbox('Status', ['not_started', 'in_progress', 'finished'])
+    status = st.selectbox('Status', ['not started', 'in progress', 'finished'])
     start_date = st.date_input('Start Date')
     end_date = st.date_input('End Date')
 
@@ -124,7 +124,7 @@ def add_task():
     task_worker = st.selectbox('Worker', workers_emails)
     name = st.text_input('Name')
     description = st.text_input('Description')
-    status = st.selectbox('Status', ['not_started', 'in_progress', 'finished'])
+    status = st.selectbox('Status', ['not started', 'in progress', 'finished'])
     start_date = st.date_input('Start Date')
     end_date = st.date_input('End Date')
 
@@ -223,6 +223,7 @@ if col2.button(':red[Delete project]', use_container_width=True):
 with st.expander(f'Comments ({len(proj_comments)})'):
     if st.button(':green[Add Comment]'):
         add_comment()
+
     for proj_comm in reversed(proj_comments):
         st.markdown('***')
         st.write(f'<p class="author">{proj_comm.get('author')}</p>{proj_comm.get('comment')}'
@@ -230,27 +231,19 @@ with st.expander(f'Comments ({len(proj_comments)})'):
                  unsafe_allow_html=True)
 
 with st.expander(f'Tasks ({len(proj_tasks)})'):
-    if st.button(':green[Add Task]'):
+    col3, col4 = st.columns(2, vertical_alignment='center')
+    if col3.button(':green[Add Task]'):
         add_task()
-    col3, col4, col5, col6, col7, col8, col9, col10 = st.columns([1, 1, 3, 1, 1, 1, 1, 1], vertical_alignment='center')
-
-    col3.write('<p class="task-label">Worker</p>', unsafe_allow_html=True)
-    col4.write('<p class="task-label">Name</p>', unsafe_allow_html=True)
-    col5.write('<p class="task-label">Description</p>', unsafe_allow_html=True)
-    col6.write('<p class="task-label">Status</p>', unsafe_allow_html=True)
-    col7.write('<p class="task-label">Start Date</p>', unsafe_allow_html=True)
-    col8.write('<p class="task-label">End Date</p>', unsafe_allow_html=True)
-    col9.write('<br><br>', unsafe_allow_html=True)
-    col10.write('<br><br>', unsafe_allow_html=True)
+    task_search = col4.text_input('Search Task By Name')
 
     for proj_task in reversed(proj_tasks):
-        col3.write(proj_task.get('worker'))
-        col4.write(proj_task.get('name'))
-        col5.write(proj_task.get('description'))
-        col6.write(proj_task.get('status'))
-        col7.write(proj_task.get('start_date'))
-        col8.write(proj_task.get('end_date'))
-        if col9.button(label=':blue[Edit]', key=f'edit{proj_task.get('task_id')}'):
-            edit_task(proj_task)
-        if col10.button(label=':red[Delete]', key=f'delete{proj_task.get('task_id')}'):
-            delete_task(proj_task)
+        if task_search in proj_task.get('name'):
+            st.markdown('***')
+            st.write(f'<p class="author">Task {proj_task.get('name')}</p><strong>Description:</strong> '
+                     f'{proj_task.get('description')}<br><strong>Worker:</strong> {proj_task.get('worker')}<br><strong>'
+                     f'Task status:</strong> {proj_task.get('status')}<br><p class="date">Start date: '
+                     f'{proj_task.get('start_date')}<br>End date: {proj_task.get('end_date')}</p>', unsafe_allow_html=True)
+            if st.button(label=':blue[Edit]', key=f'edit{proj_task.get('task_id')}'):
+                edit_task(proj_task)
+            if st.button(label=':red[Delete]', key=f'delete{proj_task.get('task_id')}'):
+                delete_task(proj_task)

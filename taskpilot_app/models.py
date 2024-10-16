@@ -24,8 +24,8 @@ class Projects(models.Model):
 
 class Tasks(models.Model):
     STATUS_CHOICES = [
-        ('not_started', 'Not Started'),
-        ('in_progress', 'In Progress'),
+        ('not started', 'Not Started'),
+        ('in progress', 'In Progress'),
         ('finished', 'Finished'),
     ]
     task_id = models.AutoField(primary_key=True)
@@ -33,7 +33,7 @@ class Tasks(models.Model):
     worker = models.ForeignKey(Workers, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=1000)
-    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='not_started')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='not started')
     start_date = models.DateField()
     end_date = models.DateField()
 
