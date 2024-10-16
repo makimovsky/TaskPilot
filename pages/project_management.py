@@ -1,74 +1,256 @@
+import os
 import streamlit as st
 import requests
 import time
 
 
-@st.dialog("Project Information Window", width='large')
-def show_project(proj):
-    st.write(f'<p class="big-font">Project {proj.get('project_id')} - {proj.get('name')}</p>\n<ul><li>'
-             f'Owner: {proj.get('owner')}</li><li>Client: {proj.get('client')}</li><li>Description: '
-             f'{proj.get('description')}</li><li>Start date: {proj.get('start_date')}</li><li>End date: '
-             f'{proj.get('end_date')}</li></ul><br>', unsafe_allow_html=True)
+@st.dialog('Edit Project')
+def edit_project():
+    name = st.text_input('Name', proj.get('name'))
+    description = st.text_input('Description', proj.get('description'))
+    owner = st.selectbox('Owner', workers_emails)
+    proj_client = st.selectbox('Client', clients_emails)
+    start_date = st.date_input('Start Date')
+    end_date = st.date_input('End Date')
 
-    comments = requests.get('http://127.0.0.1:8000/app/comments/').json()
-    proj_comments = []
-    for comment in comments:
-        if comment.get('project_id') == proj.get('project_id'):
-            proj_comments.append(comment)
+    if st.button(':green[Submit]'):
+        data = {
+            'name': name,
+            'description': description,
+            'owner': owner.split('(')[1][:-1],
+            'client': proj_client.split('(')[0][:-1],
+            'start_date': start_date.isoformat(),
+            'end_date': end_date.isoformat()
+        }
 
-    if len(proj_comments) > 0:
-        with st.expander(f'Comments ({len(proj_comments)})'):
-            for proj_comm in proj_comments:
-                st.markdown('***')
-                st.write(f'<p class="author">{proj_comm.get('author')}</p>{proj_comm.get('comment')}'
-                         f'<p class="date">{proj_comm.get('add_date')}</p>',
-                         unsafe_allow_html=True)
+        response_put = requests.put(f'http://127.0.0.1:8000/app/projects/{proj.get('project_id')}/', json=data)
+        if response_put.status_code == 200:
+            st.toast(':green[Project updated]')
+            time.sleep(1)
+            st.rerun()
+        else:
+            st.toast(':red[There was an error while updating project]')
 
-    with st.popover(':blue[Edit project]'):
-        name = st.text_input('Name', proj.get('name'))
-        description = st.text_input('Description', proj.get('description'))
-        owners = requests.get('http://127.0.0.1:8000/app/workers/').json()
-        owner_emails = []
-        for owner in owners:
-            owner_emails.append(f'{owner['name']} {owner['surname']} ({owner['email']})')
-        owner = st.selectbox('Owner', owner_emails)
-
-        proj_clients = requests.get('http://127.0.0.1:8000/app/clients/').json()
-        client_emails = []
-        for proj_client in proj_clients:
-            client_emails.append(f'{proj_client['name']} ({proj_client['email']})')
-        proj_client = st.selectbox('Client', client_emails)
-        start_date = st.date_input('Start Date')
-        end_date = st.date_input('End Date')
-
-        if st.button(':green[Submit]'):
-            data = {
-                'name': name,
-                'description': description,
-                'owner': owner.split('(')[1][:-1],
-                'client': proj_client.split('(')[0][:-1],
-                'start_date': start_date.isoformat(),
-                'end_date': end_date.isoformat()
-            }
-
-            response = requests.put(f'http://127.0.0.1:8000/app/projects/{proj.get('project_id')}/', json=data)
-            if response.status_code == 200:
-                st.toast(':green[Project updated]')
-                time.sleep(1)
-                st.rerun()
-            else:
-                st.toast(':red[There was an error while updating project]')
-
-    with st.popover(':red[Delete project]'):
-        st.warning('Are you sure about deleting this project?')
-        if st.button(':red[Yes]'):
-            response = requests.delete(f'http://127.0.0.1:8000/app/projects/{proj.get('project_id')}/')
-            if response.status_code == 204:
-                st.toast(':green[Project deleted]')
-                time.sleep(1)
-                st.rerun()
-            else:
-                st.toast(':red[There was an error while deleting project]')
-
-    if st.button('Close'):
+    if st.button(':red[Cancel]'):
         st.rerun()
+
+
+@st.dialog('Delete Project')
+def delete_project():
+    st.warning('Are you sure about deleting this project?')
+    if st.button(':red[Yes]'):
+        response_delete = requests.delete(f'http://127.0.0.1:8000/app/projects/{proj.get('project_id')}/')
+        if response_delete.status_code == 204:
+            st.toast(':green[Project deleted]')
+            time.sleep(1)
+            st.switch_page('taskpilot_app.py')
+        else:
+            st.toast(':red[There was an error while deleting project]')
+    if st.button(':green[No]'):
+        st.rerun()
+
+
+@st.dialog('Delete Task')
+def delete_task(task_to_delete):
+    st.warning('Are you sure about deleting this task?')
+    if st.button(':red[Yes]'):
+        response_delete = requests.delete(f'http://127.0.0.1:8000/app/tasks/{task_to_delete.get('task_id')}/')
+        if response_delete.status_code == 204:
+            st.toast(':green[Task deleted]')
+            time.sleep(1)
+            st.rerun()
+        else:
+            st.toast(':red[There was an error while deleting project]')
+    if st.button(':green[No]'):
+        st.rerun()
+
+
+@st.dialog('Add Comment')
+def add_comment():
+    author = st.selectbox('Author', workers_emails)
+    content = st.text_input('Content')
+    if st.button(':green[Add]'):
+        data = {
+            'project_id': proj.get('project_id'),
+            'author': author.split('(')[1][:-1],
+            'comment': content
+        }
+
+        response_post = requests.post('http://127.0.0.1:8000/app/comments/', json=data)
+        if response_post.status_code == 201:
+            st.toast(':green[Comment added]')
+            time.sleep(1)
+            st.rerun()
+        else:
+            st.toast(':red[There was an error while adding comment]')
+    if st.button(':red[Cancel]'):
+        st.rerun()
+
+
+@st.dialog('Edit Task')
+def edit_task(task_to_edit):
+    task_worker = st.selectbox('Worker', workers_emails)
+    name = st.text_input('Name', task_to_edit.get('name'))
+    description = st.text_input('Description', task_to_edit.get('description'))
+    status = st.selectbox('Status', ['not_started', 'in_progress', 'finished'])
+    start_date = st.date_input('Start Date')
+    end_date = st.date_input('End Date')
+
+    if st.button(':green[Submit]'):
+        data = {
+            'project_id': proj.get('project_id'),
+            'worker': task_worker.split('(')[1][:-1],
+            'name': name,
+            'description': description,
+            'status': status,
+            'start_date': start_date.isoformat(),
+            'end_date': end_date.isoformat()
+        }
+
+        response_put = requests.put(f'http://127.0.0.1:8000/app/tasks/{task_to_edit.get('task_id')}/', json=data)
+        if response_put.status_code == 200:
+            st.toast(':green[Task updated]')
+            time.sleep(1)
+            st.rerun()
+        else:
+            st.toast(':red[There was an error while updating task]')
+
+    if st.button(':red[Cancel]'):
+        st.rerun()
+
+
+@st.dialog('Add Task')
+def add_task():
+    task_worker = st.selectbox('Worker', workers_emails)
+    name = st.text_input('Name')
+    description = st.text_input('Description')
+    status = st.selectbox('Status', ['not_started', 'in_progress', 'finished'])
+    start_date = st.date_input('Start Date')
+    end_date = st.date_input('End Date')
+
+    if st.button(':green[Submit]'):
+        data = {
+            'project_id': proj.get('project_id'),
+            'worker': task_worker.split('(')[1][:-1],
+            'name': name,
+            'description': description,
+            'status': status,
+            'start_date': start_date.isoformat(),
+            'end_date': end_date.isoformat()
+        }
+
+        response_put = requests.post(f'http://127.0.0.1:8000/app/tasks/', json=data)
+        if response_put.status_code == 201:
+            st.toast(':green[Task added]')
+            time.sleep(1)
+            st.rerun()
+        else:
+            st.toast(':red[There was an error while adding task]')
+
+    if st.button(':red[Cancel]'):
+        st.rerun()
+
+
+project_id = os.environ.get('project_id')
+proj = requests.get(f'http://127.0.0.1:8000/app/projects/{project_id}/').json()
+
+workers = requests.get('http://127.0.0.1:8000/app/workers/').json()
+workers_emails = []
+for worker in workers:
+    workers_emails.append(f'{worker['name']} {worker['surname']} ({worker['email']})')
+
+clients = requests.get('http://127.0.0.1:8000/app/clients/').json()
+clients_emails = []
+for client in clients:
+    clients_emails.append(f'{client['name']} ({client['email']})')
+
+comments = requests.get('http://127.0.0.1:8000/app/comments/').json()
+proj_comments = []
+for comment in comments:
+    if comment.get('project_id') == proj.get('project_id'):
+        proj_comments.append(comment)
+
+tasks = requests.get('http://127.0.0.1:8000/app/tasks/').json()
+proj_tasks = []
+for task in tasks:
+    if task.get('project_id') == proj.get('project_id'):
+        proj_tasks.append(task)
+
+st.set_page_config(f'TaskPilot - Project {proj.get('project_id')}', page_icon="💼", layout='wide')
+
+st.markdown("""
+<style>
+.project-title {
+    font-size:50px;
+    font-weight: bold;
+}
+.ul-items li {
+    font-size:30px;
+}
+.author {
+    font-size:17px;
+    font-weight: bold;
+}
+.date {
+    font-size:12px;
+    font-style: italic;
+    color: gray;
+}
+.task-label {
+    font-size:18px;
+    font-weight: bold;
+}
+</style>
+""", unsafe_allow_html=True)
+
+col1, col2 = st.columns([6, 1])
+
+if col1.button(':red[< Back]'):
+    st.switch_page('taskpilot_app.py')
+
+col1.write(f'<center><p class="project-title">Project {proj.get('project_id')} - {proj.get('name')}</p></center><br>'
+           f'<br><ul class="ul-items"><li>Owner: {proj.get('owner')}</li><li>Client: {proj.get('client')}</li><li>'
+           f'Description: {proj.get('description')}</li><li>Start date: {proj.get('start_date')}</li><li>End date: '
+           f'{proj.get('end_date')}</li></ul><br>', unsafe_allow_html=True)
+
+col2.write('<br><br><br><br><br><br><br><br>', unsafe_allow_html=True)
+if col2.button(':blue[Edit project]', use_container_width=True):
+    edit_project()
+
+if col2.button(':red[Delete project]', use_container_width=True):
+    delete_project()
+
+with st.expander(f'Comments ({len(proj_comments)})'):
+    if st.button(':green[Add Comment]'):
+        add_comment()
+    for proj_comm in reversed(proj_comments):
+        st.markdown('***')
+        st.write(f'<p class="author">{proj_comm.get('author')}</p>{proj_comm.get('comment')}'
+                 f'<p class="date">{proj_comm.get('add_date')}</p>',
+                 unsafe_allow_html=True)
+
+with st.expander(f'Tasks ({len(proj_tasks)})'):
+    if st.button(':green[Add Task]'):
+        add_task()
+    col3, col4, col5, col6, col7, col8, col9, col10 = st.columns([1, 1, 3, 1, 1, 1, 1, 1], vertical_alignment='center')
+
+    col3.write('<p class="task-label">Worker</p>', unsafe_allow_html=True)
+    col4.write('<p class="task-label">Name</p>', unsafe_allow_html=True)
+    col5.write('<p class="task-label">Description</p>', unsafe_allow_html=True)
+    col6.write('<p class="task-label">Status</p>', unsafe_allow_html=True)
+    col7.write('<p class="task-label">Start Date</p>', unsafe_allow_html=True)
+    col8.write('<p class="task-label">End Date</p>', unsafe_allow_html=True)
+    col9.write('<br><br>', unsafe_allow_html=True)
+    col10.write('<br><br>', unsafe_allow_html=True)
+
+    for proj_task in reversed(proj_tasks):
+        col3.write(proj_task.get('worker'))
+        col4.write(proj_task.get('name'))
+        col5.write(proj_task.get('description'))
+        col6.write(proj_task.get('status'))
+        col7.write(proj_task.get('start_date'))
+        col8.write(proj_task.get('end_date'))
+        if col9.button(label=':blue[Edit]', key=f'edit{proj_task.get('task_id')}'):
+            edit_task(proj_task)
+        if col10.button(label=':red[Delete]', key=f'delete{proj_task.get('task_id')}'):
+            delete_task(proj_task)

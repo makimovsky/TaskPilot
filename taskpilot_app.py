@@ -1,6 +1,6 @@
-from pages.project_management import *
 import streamlit as st
 import requests
+import os
 
 st.set_page_config('TaskPilot', page_icon="💼", layout='wide')
 
@@ -12,15 +12,6 @@ st.markdown("""
 .app-title {
     font-size:80px;
     font-weight: bold;
-}
-.author {
-    font-size:17px;
-    font-weight: bold;
-}
-.date {
-    font-size:12px;
-    font-style: italic;
-    color: gray;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -45,9 +36,10 @@ if resource == 'Projects':
             st.write(f'<p class="big-font">Project {project.get('project_id')} - {project.get('name')}</p>',
                      unsafe_allow_html=True)
             if st.button(label=':blue[Details]', key=project.get('project_id')):
-                show_project(project)
+                os.environ['project_id'] = str(project.get('project_id'))
+                st.switch_page('pages/project_management.py')
 
-if resource == 'Workers':
+elif resource == 'Workers':
     worker_search = st.text_input('Search Worker')
     worker_search_by = st.multiselect('Search By', ['name', 'surname', 'email'], ['name', 'surname', 'email'])
 
@@ -62,7 +54,7 @@ if resource == 'Workers':
             st.write(f'<p class="big-font">{worker.get('name')} {worker.get('surname')}</p>\n<ul><li>Email: '
                      f'{worker.get('email')}</li></ul>', unsafe_allow_html=True)
 
-if resource == 'Clients':
+elif resource == 'Clients':
     client_search = st.text_input('Search Client')
     client_search_by = st.multiselect('Search By', ['name', 'email'], ['name', 'email'])
 
