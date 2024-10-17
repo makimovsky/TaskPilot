@@ -2,24 +2,23 @@ from django.db import models
 
 
 class Workers(models.Model):
-    email = models.EmailField(max_length=255, unique=True, primary_key=True)
+    worker_id = models.AutoField(primary_key=True)
+    email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     surname = models.CharField(max_length=255)
 
 
 class Clients(models.Model):
-    name = models.CharField(max_length=255, primary_key=True)
+    client_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255)
 
 
 class Projects(models.Model):
     project_id = models.AutoField(primary_key=True)
-    owner = models.ForeignKey(Workers, on_delete=models.CASCADE)
     client = models.ForeignKey(Clients, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=1000)
-    start_date = models.DateField()
-    end_date = models.DateField()
 
 
 class Tasks(models.Model):
@@ -29,6 +28,7 @@ class Tasks(models.Model):
         ('finished', 'Finished'),
     ]
     task_id = models.AutoField(primary_key=True)
+    # TODO: check on_delete
     project_id = models.ForeignKey(Projects, on_delete=models.CASCADE)
     worker = models.ForeignKey(Workers, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)

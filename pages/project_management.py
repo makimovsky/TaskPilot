@@ -8,19 +8,13 @@ import time
 def edit_project():
     name = st.text_input('Name', proj.get('name'))
     description = st.text_input('Description', proj.get('description'))
-    owner = st.selectbox('Owner', workers_emails)
-    proj_client = st.selectbox('Client', clients_emails)
-    start_date = st.date_input('Start Date')
-    end_date = st.date_input('End Date')
+    proj_client = st.selectbox('Client', clients_emails.keys())
 
     if st.button(':green[Submit]'):
         data = {
             'name': name,
             'description': description,
-            'owner': owner.split('(')[1][:-1],
-            'client': proj_client.split('(')[0][:-1],
-            'start_date': start_date.isoformat(),
-            'end_date': end_date.isoformat()
+            'client': clients_emails.get(proj_client),
         }
 
         response_put = requests.put(f'http://127.0.0.1:8000/app/projects/{proj.get('project_id')}/', json=data)
@@ -67,12 +61,12 @@ def delete_task(task_to_delete):
 
 @st.dialog('Add Comment')
 def add_comment():
-    author = st.selectbox('Author', workers_emails)
+    author = st.selectbox('Author', workers_emails.keys())
     content = st.text_input('Content')
     if st.button(':green[Add]'):
         data = {
             'project_id': proj.get('project_id'),
-            'author': author.split('(')[1][:-1],
+            'author': workers_emails.get(author),
             'comment': content
         }
 
@@ -89,7 +83,7 @@ def add_comment():
 
 @st.dialog('Edit Task')
 def edit_task(task_to_edit):
-    task_worker = st.selectbox('Worker', workers_emails)
+    task_worker = st.selectbox('Worker', workers_emails.keys())
     name = st.text_input('Name', task_to_edit.get('name'))
     description = st.text_input('Description', task_to_edit.get('description'))
     status = st.selectbox('Status', ['not started', 'in progress', 'finished'])
@@ -99,7 +93,7 @@ def edit_task(task_to_edit):
     if st.button(':green[Submit]'):
         data = {
             'project_id': proj.get('project_id'),
-            'worker': task_worker.split('(')[1][:-1],
+            'worker': workers_emails.get(task_worker),
             'name': name,
             'description': description,
             'status': status,
@@ -121,7 +115,7 @@ def edit_task(task_to_edit):
 
 @st.dialog('Add Task')
 def add_task():
-    task_worker = st.selectbox('Worker', workers_emails)
+    task_worker = st.selectbox('Worker', workers_emails.keys())
     name = st.text_input('Name')
     description = st.text_input('Description')
     status = st.selectbox('Status', ['not started', 'in progress', 'finished'])
@@ -131,7 +125,7 @@ def add_task():
     if st.button(':green[Submit]'):
         data = {
             'project_id': proj.get('project_id'),
-            'worker': task_worker.split('(')[1][:-1],
+            'worker': workers_emails.get(task_worker),
             'name': name,
             'description': description,
             'status': status,
@@ -151,18 +145,26 @@ def add_task():
         st.rerun()
 
 
+def find_with_id(provided_id, where):
+    for key in where.keys():
+        if where.get(key) == provided_id:
+            return key
+
+    return None
+
+
 project_id = os.environ.get('project_id')
 proj = requests.get(f'http://127.0.0.1:8000/app/projects/{project_id}/').json()
 
 workers = requests.get('http://127.0.0.1:8000/app/workers/').json()
-workers_emails = []
+workers_emails = {}
 for worker in workers:
-    workers_emails.append(f'{worker['name']} {worker['surname']} ({worker['email']})')
+    workers_emails[f'{worker.get('name')} {worker.get('surname')} ({worker.get('email')})'] = worker.get('worker_id')
 
 clients = requests.get('http://127.0.0.1:8000/app/clients/').json()
-clients_emails = []
+clients_emails = {}
 for client in clients:
-    clients_emails.append(f'{client['name']} ({client['email']})')
+    clients_emails[f'{client.get('name')} ({client.get('email')})'] = client.get('client_id')
 
 comments = requests.get('http://127.0.0.1:8000/app/comments/').json()
 proj_comments = []
@@ -209,9 +211,8 @@ if col1.button(':red[< Back]'):
     st.switch_page('taskpilot_app.py')
 
 col1.write(f'<center><p class="project-title">Project {proj.get('project_id')} - {proj.get('name')}</p></center><br>'
-           f'<br><ul class="ul-items"><li>Owner: {proj.get('owner')}</li><li>Client: {proj.get('client')}</li><li>'
-           f'Description: {proj.get('description')}</li><li>Start date: {proj.get('start_date')}</li><li>End date: '
-           f'{proj.get('end_date')}</li></ul><br>', unsafe_allow_html=True)
+           f'<br><ul class="ul-items"><li>Client: {find_with_id(proj.get('client'), clients_emails)}</li><li>'
+           f'Description: {proj.get('description')}</li></ul><br>', unsafe_allow_html=True)
 
 col2.write('<br><br><br><br><br><br><br><br>', unsafe_allow_html=True)
 if col2.button(':blue[Edit project]', use_container_width=True):
@@ -226,11 +227,10 @@ with st.expander(f'Comments ({len(proj_comments)})'):
 
     for proj_comm in reversed(proj_comments):
         st.markdown('***')
-        st.write(f'<p class="author">{proj_comm.get('author')}</p>{proj_comm.get('comment')}'
-                 f'<p class="date">{proj_comm.get('add_date')}</p>',
-                 unsafe_allow_html=True)
+        st.write(f'<p class="author">{find_with_id(proj_comm.get('author'), workers_emails)}</p>'
+                 f'{proj_comm.get('comment')}<p class="date">{proj_comm.get('add_date')}</p>', unsafe_allow_html=True)
 
-with st.expander(f'Tasks ({len(proj_tasks)})'):
+with (st.expander(f'Tasks ({len(proj_tasks)})')):
     col3, col4 = st.columns(2, vertical_alignment='center')
     if col3.button(':green[Add Task]'):
         add_task()
@@ -240,9 +240,11 @@ with st.expander(f'Tasks ({len(proj_tasks)})'):
         if task_search in proj_task.get('name'):
             st.markdown('***')
             st.write(f'<p class="author">Task {proj_task.get('name')}</p><strong>Description:</strong> '
-                     f'{proj_task.get('description')}<br><strong>Worker:</strong> {proj_task.get('worker')}<br><strong>'
+                     f'{proj_task.get('description')}<br><strong>Worker:</strong> '
+                     f'{find_with_id(proj_task.get('worker'), workers_emails)}<br><strong>'
                      f'Task status:</strong> {proj_task.get('status')}<br><p class="date">Start date: '
-                     f'{proj_task.get('start_date')}<br>End date: {proj_task.get('end_date')}</p>', unsafe_allow_html=True)
+                     f'{proj_task.get('start_date')}<br>End date: {proj_task.get('end_date')}</p>',
+                     unsafe_allow_html=True)
             if st.button(label=':blue[Edit]', key=f'edit{proj_task.get('task_id')}'):
                 edit_task(proj_task)
             if st.button(label=':red[Delete]', key=f'delete{proj_task.get('task_id')}'):

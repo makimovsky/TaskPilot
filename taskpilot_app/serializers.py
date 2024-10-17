@@ -5,19 +5,19 @@ from taskpilot_app import models
 class WorkersSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Workers
-        fields = ('email', 'name', 'surname')
+        fields = ('worker_id', 'email', 'name', 'surname')
 
 
 class ClientsSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Clients
-        fields = ('name', 'email')
+        fields = ('client_id', 'name', 'email')
 
 
 class ProjectsSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Projects
-        fields = ('project_id', 'owner', 'client', 'name', 'description', 'start_date', 'end_date')
+        fields = ('project_id', 'client', 'name', 'description')
 
 
 class TasksSerializer(serializers.ModelSerializer):
