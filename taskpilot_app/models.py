@@ -28,7 +28,6 @@ class Tasks(models.Model):
         ('finished', 'Finished'),
     ]
     task_id = models.AutoField(primary_key=True)
-    # TODO: check on_delete
     project_id = models.ForeignKey(Projects, on_delete=models.CASCADE)
     worker = models.ForeignKey(Workers, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)

@@ -10,7 +10,8 @@ def edit_project():
     description = st.text_input('Description', proj.get('description'))
     proj_client = st.selectbox('Client', clients_emails.keys())
 
-    if st.button(':green[Submit]'):
+    war_col1, war_col2 = st.columns(2)
+    if war_col1.button(':green[Submit]', use_container_width=True):
         data = {
             'name': name,
             'description': description,
@@ -25,14 +26,15 @@ def edit_project():
         else:
             st.toast(':red[There was an error while updating project]')
 
-    if st.button(':red[Cancel]'):
+    if war_col2.button(':red[Cancel]', use_container_width=True):
         st.rerun()
 
 
 @st.dialog('Delete Project')
 def delete_project():
     st.warning('Are you sure about deleting this project?')
-    if st.button(':red[Yes]'):
+    war_col1, war_col2 = st.columns(2)
+    if war_col1.button(':red[Yes]', use_container_width=True):
         response_delete = requests.delete(f'http://127.0.0.1:8000/app/projects/{proj.get('project_id')}/')
         if response_delete.status_code == 204:
             st.toast(':green[Project deleted]')
@@ -40,14 +42,15 @@ def delete_project():
             st.switch_page('taskpilot_app.py')
         else:
             st.toast(':red[There was an error while deleting project]')
-    if st.button(':green[No]'):
+    if war_col2.button(':green[No]', use_container_width=True):
         st.rerun()
 
 
 @st.dialog('Delete Task')
 def delete_task(task_to_delete):
     st.warning('Are you sure about deleting this task?')
-    if st.button(':red[Yes]'):
+    war_col1, war_col2 = st.columns(2)
+    if war_col1.button(':red[Yes]', use_container_width=True):
         response_delete = requests.delete(f'http://127.0.0.1:8000/app/tasks/{task_to_delete.get('task_id')}/')
         if response_delete.status_code == 204:
             st.toast(':green[Task deleted]')
@@ -55,7 +58,7 @@ def delete_task(task_to_delete):
             st.rerun()
         else:
             st.toast(':red[There was an error while deleting project]')
-    if st.button(':green[No]'):
+    if war_col2.button(':green[No]', use_container_width=True):
         st.rerun()
 
 
@@ -63,7 +66,8 @@ def delete_task(task_to_delete):
 def add_comment():
     author = st.selectbox('Author', workers_emails.keys())
     content = st.text_input('Content')
-    if st.button(':green[Add]'):
+    war_col1, war_col2 = st.columns(2)
+    if war_col1.button(':green[Add]', use_container_width=True):
         data = {
             'project_id': proj.get('project_id'),
             'author': workers_emails.get(author),
@@ -77,7 +81,7 @@ def add_comment():
             st.rerun()
         else:
             st.toast(':red[There was an error while adding comment]')
-    if st.button(':red[Cancel]'):
+    if war_col2.button(':red[Cancel]', use_container_width=True):
         st.rerun()
 
 
@@ -90,7 +94,8 @@ def edit_task(task_to_edit):
     start_date = st.date_input('Start Date')
     end_date = st.date_input('End Date')
 
-    if st.button(':green[Submit]'):
+    war_col1, war_col2 = st.columns(2)
+    if war_col1.button(':green[Submit]', use_container_width=True):
         data = {
             'project_id': proj.get('project_id'),
             'worker': workers_emails.get(task_worker),
@@ -109,7 +114,7 @@ def edit_task(task_to_edit):
         else:
             st.toast(':red[There was an error while updating task]')
 
-    if st.button(':red[Cancel]'):
+    if war_col2.button(':red[Cancel]', use_container_width=True):
         st.rerun()
 
 
@@ -122,7 +127,8 @@ def add_task():
     start_date = st.date_input('Start Date')
     end_date = st.date_input('End Date')
 
-    if st.button(':green[Submit]'):
+    war_col1, war_col2 = st.columns(2)
+    if war_col1.button(':green[Submit]', use_container_width=True):
         data = {
             'project_id': proj.get('project_id'),
             'worker': workers_emails.get(task_worker),
@@ -141,7 +147,7 @@ def add_task():
         else:
             st.toast(':red[There was an error while adding task]')
 
-    if st.button(':red[Cancel]'):
+    if war_col2.button(':red[Cancel]', use_container_width=True):
         st.rerun()
 
 
@@ -150,7 +156,7 @@ def find_with_id(provided_id, where):
         if where.get(key) == provided_id:
             return key
 
-    return None
+    return 'Not found'
 
 
 project_id = os.environ.get('project_id')
@@ -229,7 +235,7 @@ with st.expander(f'Comments ({len(proj_comments)})'):
         st.markdown('***')
         st.write(f'<p class="author">{find_with_id(proj_comm.get('author'), workers_emails)}</p>'
                  f'{proj_comm.get('comment')}<p class="date">{proj_comm.get('add_date')}</p>', unsafe_allow_html=True)
-
+# TODO: zastanowić się nad wykresem pokazującym rozkład zadań
 with (st.expander(f'Tasks ({len(proj_tasks)})')):
     col3, col4 = st.columns(2, vertical_alignment='center')
     if col3.button(':green[Add Task]'):

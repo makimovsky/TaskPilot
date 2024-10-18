@@ -5,8 +5,9 @@ import time
 
 @st.dialog('Delete Client')
 def delete_client(client):
-    st.warning('Are you sure about deleting this client?')
-    if st.button(':red[Yes]'):
+    st.warning('Are you sure about deleting this client? This will delete all projects related to this client!')
+    war_col1, war_col2 = st.columns(2)
+    if war_col1.button(':red[Yes]', use_container_width=True):
         response_delete = requests.delete(f'http://127.0.0.1:8000/app/clients/{client.get('client_id')}/')
         if response_delete.status_code == 204:
             st.toast(':green[Client deleted]')
@@ -14,7 +15,7 @@ def delete_client(client):
             st.rerun()
         else:
             st.toast(':red[There was an error while deleting client]')
-    if st.button(':green[No]'):
+    if war_col2.button(':green[No]', use_container_width=True):
         st.rerun()
 
 
@@ -23,7 +24,8 @@ def edit_client(client):
     name = st.text_input('Name', client.get('name'))
     email = st.text_input('Email', client.get('email'))
 
-    if st.button(':green[Submit]'):
+    war_col1, war_col2 = st.columns(2)
+    if war_col1.button(':green[Submit]', use_container_width=True):
         data = {
             'name': name,
             'email': email
@@ -37,5 +39,5 @@ def edit_client(client):
         else:
             st.toast(':red[There was an error while updating client]')
 
-    if st.button(':red[Cancel]'):
+    if war_col2.button(':red[Cancel]', use_container_width=True):
         st.rerun()
