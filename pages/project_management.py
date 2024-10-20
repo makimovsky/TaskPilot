@@ -2,7 +2,6 @@ import os
 import streamlit as st
 import requests
 import time
-import matplotlib.pyplot as plt
 
 
 @st.dialog('Edit Project')
@@ -212,7 +211,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-col1, col2, col3 = st.columns([6, 3, 1])
+col1, col2 = st.columns([6, 1])
 
 if col1.button(':red[< Back]'):
     st.switch_page('taskpilot_app.py')
@@ -221,11 +220,11 @@ col1.write(f'<center><p class="project-title">Project {proj.get('project_id')} -
            f'<br><ul class="ul-items"><li>Client: {find_with_id(proj.get('client'), clients_emails)}</li><li>'
            f'Description: {proj.get('description')}</li></ul><br>', unsafe_allow_html=True)
 
-col3.write('<br><br><br><br><br><br><br><br>', unsafe_allow_html=True)
-if col3.button(':blue[Edit project]', use_container_width=True):
+col2.write('<br><br><br><br><br><br><br><br>', unsafe_allow_html=True)
+if col2.button(':blue[Edit project]', use_container_width=True):
     edit_project()
 
-if col3.button(':red[Delete project]', use_container_width=True):
+if col2.button(':red[Delete project]', use_container_width=True):
     delete_project()
 
 with st.expander(f'Comments ({len(proj_comments)})'):
@@ -261,12 +260,12 @@ with (st.expander(f'Tasks ({len(proj_tasks)})')):
 
     progress_bar_html = ('<div style="display: flex; width: 100%; height: 30px; background-color: #e0e0e0; '
                          'border-radius: 5px; overflow: hidden;">')
-    for status, proportion in task_proportions.items():
-        color = status_colors[status]
+    for proj_status, proportion in task_proportions.items():
+        color = status_colors.get(proj_status)
         width = f'{proportion}%'
         progress_bar_html += (
             f'<div style="background-color: {color}; width: {width}; text-align: center; color: white; '
-            f'height: 100%;">{status} ({proportion:.1f}%)</div>')
+            f'height: 100%;">{proj_status} ({proportion:.1f}%)</div>')
     progress_bar_html += '</div>'
     col4.markdown(progress_bar_html, unsafe_allow_html=True)
 
