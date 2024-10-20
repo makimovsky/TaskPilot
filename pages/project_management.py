@@ -2,6 +2,7 @@ import os
 import streamlit as st
 import requests
 import time
+import matplotlib.pyplot as plt
 
 
 @st.dialog('Edit Project')
@@ -211,7 +212,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-col1, col2 = st.columns([6, 1])
+col1, col2, col3 = st.columns([6, 3, 1])
 
 if col1.button(':red[< Back]'):
     st.switch_page('taskpilot_app.py')
@@ -220,11 +221,11 @@ col1.write(f'<center><p class="project-title">Project {proj.get('project_id')} -
            f'<br><ul class="ul-items"><li>Client: {find_with_id(proj.get('client'), clients_emails)}</li><li>'
            f'Description: {proj.get('description')}</li></ul><br>', unsafe_allow_html=True)
 
-col2.write('<br><br><br><br><br><br><br><br>', unsafe_allow_html=True)
-if col2.button(':blue[Edit project]', use_container_width=True):
+col3.write('<br><br><br><br><br><br><br><br>', unsafe_allow_html=True)
+if col3.button(':blue[Edit project]', use_container_width=True):
     edit_project()
 
-if col2.button(':red[Delete project]', use_container_width=True):
+if col3.button(':red[Delete project]', use_container_width=True):
     delete_project()
 
 with st.expander(f'Comments ({len(proj_comments)})'):
@@ -235,12 +236,39 @@ with st.expander(f'Comments ({len(proj_comments)})'):
         st.markdown('***')
         st.write(f'<p class="author">{find_with_id(proj_comm.get('author'), workers_emails)}</p>'
                  f'{proj_comm.get('comment')}<p class="date">{proj_comm.get('add_date')}</p>', unsafe_allow_html=True)
-# TODO: zastanowić się nad wykresem pokazującym rozkład zadań
+
 with (st.expander(f'Tasks ({len(proj_tasks)})')):
-    col3, col4 = st.columns(2, vertical_alignment='center')
+    col3, col4, col5 = st.columns([2, 6, 4], vertical_alignment='center')
     if col3.button(':green[Add Task]'):
         add_task()
-    task_search = col4.text_input('Search Task By Name')
+    task_search = col5.text_input('Search Task By Name')
+
+    labels_count = {'not started': 0,
+                    'in progress': 0,
+                    'finished': 0}
+
+    for proj in proj_tasks:
+        labels_count[proj.get('status')] += 1
+
+    total_tasks = sum(labels_count.values())
+    task_proportions = {key: (value / total_tasks) * 100 for key, value in labels_count.items()}
+
+    status_colors = {
+        'finished': '#3e6c3e',
+        'in progress': '#935819',
+        'not started': '#822831'
+    }
+
+    progress_bar_html = ('<div style="display: flex; width: 100%; height: 30px; background-color: #e0e0e0; '
+                         'border-radius: 5px; overflow: hidden;">')
+    for status, proportion in task_proportions.items():
+        color = status_colors[status]
+        width = f'{proportion}%'
+        progress_bar_html += (
+            f'<div style="background-color: {color}; width: {width}; text-align: center; color: white; '
+            f'height: 100%;">{status} ({proportion:.1f}%)</div>')
+    progress_bar_html += '</div>'
+    col4.markdown(progress_bar_html, unsafe_allow_html=True)
 
     for proj_task in reversed(proj_tasks):
         if task_search in proj_task.get('name'):
